@@ -98,3 +98,48 @@ These assumptions were reviewed and considered acceptable for the current checkp
 Accepted Checkpoint 1 with no code changes required.
 
 Additional robustness cases, such as empty resident/dish collections and unexpected non-string values, were identified but deferred to the final regression-testing stage because they were not required by the current checkpoint.
+
+## Iteration 3 — Checkpoint 2 Implementation
+
+### Goal
+
+Implement the core compatibility engine according to the rules and ordering requirements in `P02_SPEC.md`.
+
+### AI Contribution
+
+Claude implemented five functions in `logic.js`:
+
+* `checkDiet()`
+* `checkAllergens()`
+* `checkBudget()`
+* `evaluateDish()`
+* `evaluateAll()`
+
+The implementation preserves resident-table order, evaluates diet and allergen checks independently, preserves ingredient-tag order for allergen reasons, places `OVER_BUDGET` last, and preserves dish source order.
+
+### Verification
+
+Claude ran 14 focused tests covering:
+
+* Built-in oracle results
+* ₹150 inclusive budget boundary
+* ₹130 budget behavior
+* Multiple allergen matches and ingredient-tag ordering
+* Resident/reason ordering
+* Diet-failure and allergen-check independence
+* `OVER_BUDGET` ordering
+* Source-order preservation
+
+All 14 tests passed.
+
+I reviewed the implementation summary and confirmed that the compatibility engine remains general rather than hard-coded to the built-in oracle.
+
+### Assumptions
+
+Claude added defensive validation inside `checkBudget()` and normalization inside the compatibility functions so they can be tested independently. These do not change the specified behavior for valid state.
+
+### Decision
+
+Accepted Checkpoint 2 with no code changes required.
+
+Additional edge cases and integration with `validateState()` remain deferred to the later regression/integration stages specified in the implementation plan.

@@ -97,6 +97,81 @@ function validateState(state) {
   return { ok: true };
 }
 
+// Checkpoint 2: core compatibility engine.
+
+function checkDiet(resident, dish) {
+  const residentDiet = normalize(resident.diet);
+  const dishDiet = normalize(dish.dietClass);
+
+  if (residentDiet === 'NO_RESTRICTION') return true;
+  if (residentDiet === 'VEGAN') return dishDiet === 'VEGAN';
+  if (residentDiet === 'VEGETARIAN') return dishDiet === 'VEGAN' || dishDiet === 'VEGETARIAN';
+  return false;
+}
+
+// Returns the matching ingredient tags, in dish ingredient-tag order.
+function checkAllergens(resident, dish) {
+  const allergens = (resident.allergens || []).map(normalize);
+  const tags = (dish.tags || []).map(normalize);
+  return tags.filter((tag) => allergens.includes(tag));
+}
+
+function checkBudget(dish, budget) {
+  return isPositiveWholeRupee(dish.price) && isPositiveWholeRupee(budget) && dish.price <= budget;
+}
+
+// Returns the ordered list of exclusion reasons for one dish; empty means compatible.
+function evaluateDish(dish, residents, budget) {
+  const reasons = [];
+
+  for (let i = 0; i < residents.length; i++) {
+    const resident = residents[i];
+
+    if (!checkDiet(resident, dish)) {
+      reasons.push(`DIET:${resident.name}`);
+    }
+
+    const matchedAllergens = checkAllergens(resident, dish);
+    for (let a = 0; a < matchedAllergens.length; a++) {
+      reasons.push(`ALLERGEN:${resident.name}:${matchedAllergens[a]}`);
+    }
+  }
+
+  if (!checkBudget(dish, budget)) {
+    reasons.push('OVER_BUDGET');
+  }
+
+  return reasons;
+}
+
+// Returns { compatible, exclusions, compatibleCount }, preserving dish source order.
+function evaluateAll(state) {
+  const compatible = [];
+  const exclusions = [];
+
+  for (let i = 0; i < state.dishes.length; i++) {
+    const dish = state.dishes[i];
+    const reasons = evaluateDish(dish, state.residents, state.budget);
+
+    if (reasons.length === 0) {
+      compatible.push(dish);
+    } else {
+      exclusions.push({ dish, reasons });
+    }
+  }
+
+  return { compatible, exclusions, compatibleCount: compatible.length };
+}
+
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { createDefaultState, normalize, validateState };
+  module.exports = {
+    createDefaultState,
+    normalize,
+    validateState,
+    checkDiet,
+    checkAllergens,
+    checkBudget,
+    evaluateDish,
+    evaluateAll,
+  };
 }
