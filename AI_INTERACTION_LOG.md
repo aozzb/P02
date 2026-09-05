@@ -143,3 +143,52 @@ Claude added defensive validation inside `checkBudget()` and normalization insid
 Accepted Checkpoint 2 with no code changes required.
 
 Additional edge cases and integration with `validateState()` remain deferred to the later regression/integration stages specified in the implementation plan.
+
+## Iteration 4 — Checkpoint 3 Implementation
+
+### Goal
+
+Implement the search functionality while ensuring that search only filters the already-computed compatible dishes and does not alter the true compatible count.
+
+### AI Contribution
+
+Claude implemented `searchCompatible()` in `logic.js`.
+
+The function:
+
+* Trims the search query
+* Treats empty and whitespace-only queries as showing all compatible dishes
+* Performs case-insensitive substring matching
+* Searches cafe names, dish names, and ingredient tags
+* Preserves source order
+* Operates only on the compatible-dish list
+
+No changes to `evaluateAll()` were required because the existing result structure already separates the compatible list from the compatible count.
+
+### Verification
+
+Claude ran 19 tests covering:
+
+* Built-in oracle behavior
+* Search narrowing
+* Count remaining unchanged after filtering
+* Clearing the search
+* Whitespace-only queries
+* Case-insensitive matching
+* Cafe-name matching
+* Ingredient-tag matching
+* Excluded-dish protection
+* Result-order preservation
+* Generality using a synthetic dataset
+
+All 19 tests passed.
+
+### Human Evaluation
+
+I reviewed the implementation and confirmed that `searchCompatible()` receives only the compatible-dish list, making excluded dishes unavailable to the search function. I also confirmed that the compatible count remains derived from the complete compatible result rather than the filtered display list.
+
+### Decision
+
+Accepted Checkpoint 3 with no code changes required.
+
+UI integration and additional zero-result regression cases remain deferred to the later checkpoints as planned.

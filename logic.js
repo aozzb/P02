@@ -163,6 +163,21 @@ function evaluateAll(state) {
   return { compatible, exclusions, compatibleCount: compatible.length };
 }
 
+// Checkpoint 3: search over the already-computed compatible dishes only.
+// Never touches excluded dishes and never affects the compatible count.
+function searchCompatible(compatibleDishes, query) {
+  const trimmed = String(query || '').trim();
+  if (trimmed.length === 0) return compatibleDishes;
+
+  const needle = normalize(trimmed);
+
+  return compatibleDishes.filter((dish) => {
+    if (normalize(dish.cafe).includes(needle)) return true;
+    if (normalize(dish.name).includes(needle)) return true;
+    return (dish.tags || []).some((tag) => normalize(tag).includes(needle));
+  });
+}
+
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     createDefaultState,
@@ -173,5 +188,6 @@ if (typeof module !== 'undefined' && module.exports) {
     checkBudget,
     evaluateDish,
     evaluateAll,
+    searchCompatible,
   };
 }
