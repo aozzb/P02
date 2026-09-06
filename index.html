@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hostel Food Compatibility Board</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="app-header">
+    <h1>Hostel Food Compatibility Board</h1>
+    <p class="subtitle">Which dishes can the whole group safely and affordably eat?</p>
+  </header>
+
+  <main>
+    <section class="panel" aria-labelledby="residents-heading">
+      <div class="panel-head">
+        <h2 id="residents-heading">Group</h2>
+        <button type="button" id="add-resident-btn" class="btn btn-secondary">+ Add resident</button>
+      </div>
+      <div class="table-scroll">
+        <table id="residents-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Diet</th>
+              <th>Allergens (comma-separated)</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="residents-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="dishes-heading">
+      <div class="panel-head">
+        <h2 id="dishes-heading">Dishes</h2>
+        <button type="button" id="add-dish-btn" class="btn btn-secondary">+ Add dish</button>
+      </div>
+      <div class="table-scroll">
+        <table id="dishes-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Cafe</th>
+              <th>Dish</th>
+              <th>Diet class</th>
+              <th>Ingredient tags (comma-separated)</th>
+              <th>Price (₹)</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="dishes-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel controls-panel">
+      <div class="control-group">
+        <label for="budget-input">Per-person budget (₹)</label>
+        <input type="number" id="budget-input" min="1" step="1">
+      </div>
+      <div class="control-group">
+        <label for="search-input">Search compatible dishes</label>
+        <input type="text" id="search-input" placeholder="Search by cafe, dish, or ingredient...">
+      </div>
+      <div class="control-group actions">
+        <button type="button" id="evaluate-btn" class="btn btn-primary">Evaluate compatibility</button>
+        <button type="button" id="reset-btn" class="btn btn-secondary">Reset to sample</button>
+      </div>
+    </section>
+
+    <section id="validation-banner" class="validation-banner" hidden></section>
+
+    <section class="panel results-panel" aria-labelledby="results-heading">
+      <div class="panel-head">
+        <h2 id="results-heading">Result</h2>
+        <span id="compatible-count" class="count-badge"></span>
+      </div>
+
+      <div id="results-empty" class="empty-state">
+        Click <strong>Evaluate compatibility</strong> to see which dishes work for everyone.
+      </div>
+
+      <div id="results-content" hidden>
+        <h3 class="results-subheading">Compatible dishes</h3>
+        <ul id="compatible-list" class="dish-list"></ul>
+
+        <h3 class="results-subheading">Excluded dishes</h3>
+        <ul id="excluded-list" class="dish-list excluded"></ul>
+      </div>
+    </section>
+  </main>
+
+  <script src="logic.js"></script>
+  <script src="ui.js"></script>
+</body>
+</html>

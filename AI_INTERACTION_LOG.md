@@ -192,3 +192,73 @@ I reviewed the implementation and confirmed that `searchCompatible()` receives o
 Accepted Checkpoint 3 with no code changes required.
 
 UI integration and additional zero-result regression cases remain deferred to the later checkpoints as planned.
+
+## Iteration 5 — Checkpoint 4: UI Integration
+
+### Goal:  
+Connect the tested compatibility engine to a browser UI while preserving the separation between business logic and presentation.
+
+### AI contribution:
+Claude was asked to implement only Checkpoint 4 from `IMPLEMENTATION_PLAN.md`, using the existing `logic.js` implementation without changing the previously tested business logic.
+
+Claude created:
+- `index.html`
+- `styles.css`
+- `ui.js`
+
+The UI supports editable resident/dish tables, budget input, search, Evaluate, Reset, validation feedback, compatible results, exclusion reasons, and compatible count.
+
+### Key design decision:  
+The UI maintains a clear distinction between the complete compatibility result and the searched/displayed results:
+
+- `lastResult.compatible` represents the complete compatible set and is the source of the compatible count.
+- `searchCompatible()` is applied only when determining which compatible dishes are displayed.
+
+Therefore, searching can narrow the displayed results without changing the compatibility count.
+
+### My evaluation:
+I reviewed the implementation against the specification and checked that:
+
+- validation is performed before compatibility evaluation;
+- failed validation clears previous results and counts;
+- business rules are not duplicated inside `ui.js`;
+- diet, allergen, budget, and search decisions remain in `logic.js`;
+- exclusion reasons are rendered from the logic layer rather than reconstructed by the UI;
+- search operates only on compatible dishes;
+- search does not modify the underlying compatible count;
+- Reset restores the built-in state and clears previous results without automatically evaluating;
+- edited UI values are used when Evaluate is clicked;
+- no hard-coded built-in compatibility results were introduced.
+
+### Verification:
+Claude re-ran the Checkpoint 1–3 logic checks and confirmed that the existing behavior remained unchanged.
+
+It also performed browser-level verification using Playwright with 26 automated checks. These covered:
+
+- initial empty state;
+- built-in evaluation producing D01/D02 with count 2;
+- exact exclusion reasons;
+- `wheat` search narrowing the display while keeping count at 2;
+- clearing search;
+- preventing excluded dishes from appearing in search results;
+- adding/editing data and recalculating results;
+- invalid price validation and clearing stale results;
+- Reset behavior;
+- edited budget values being used during evaluation;
+- absence of browser console errors.
+
+### Result: 
+All 26/26 browser checks passed, and the existing logic tests continued to pass.
+
+### Assumptions / decisions:
+- Diet fields remain free-text inputs rather than UI dropdowns so that the valid-diet enum does not have to be duplicated in the UI.
+- Comma-separated allergen/tag fields are passed through to the existing validation logic rather than being silently sanitized by the UI.
+- Optional Add Resident/Add Dish and Remove controls were included because the tables are required to be editable and these controls do not introduce additional business rules.
+- The validation error display format is a UI presentation choice; the required table, row, field, and error code information is preserved.
+
+### Unverified:
+- Mobile/small-viewport layout has not yet been visually tested.
+- Duplicate dish IDs and non-integer prices have been tested in the logic layer but not through the browser UI end-to-end.
+
+### Decision:
+Accepted Checkpoint 4 without code changes. The implementation remained within scope, preserved the existing architecture, and passed the browser verification suite. The remaining unverified cases are low-risk because the underlying validation logic is already covered by the earlier checkpoint tests.
