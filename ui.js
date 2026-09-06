@@ -21,6 +21,7 @@ const compatibleListEl = document.getElementById('compatible-list');
 const excludedListEl = document.getElementById('excluded-list');
 
 function parseCsvField(value) {
+  if (value.trim() === '') return [];
   return value.split(',');
 }
 

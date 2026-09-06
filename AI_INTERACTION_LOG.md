@@ -262,3 +262,65 @@ All 26/26 browser checks passed, and the existing logic tests continued to pass.
 
 ### Decision:
 Accepted Checkpoint 4 without code changes. The implementation remained within scope, preserved the existing architecture, and passed the browser verification suite. The remaining unverified cases are low-risk because the underlying validation logic is already covered by the earlier checkpoint tests.
+
+## Iteration 6 — Checkpoint 5: Final Testing, Verification & Bug Fix
+
+### Goal
+
+Perform a final acceptance-focused verification of the whole application against `P02_SPEC.md` and fix only genuine issues discovered during testing, without adding features or unnecessary polish.
+
+### AI Contribution
+
+Claude reviewed `logic.js`, `ui.js`, `index.html`, and `styles.css` against every rule in `P02_SPEC.md`, then ran a full acceptance test pass through the actual browser UI, plus a regression re-run of the Checkpoints 1–3 logic tests.
+
+### Specification Review
+
+I asked Claude to check the implementation against the specification's rules for data/model behavior, validation, diet compatibility, allergen compatibility, budget handling, exclusion-reason ordering, source ordering, search behavior, compatible-count behavior, reset behavior, editable state, stale-result clearing, and UI scope. Claude reported that all specification rules matched, with one exception, and I reviewed that finding rather than accepting it at face value.
+
+### Bug Discovered
+
+Claude identified a defect in `ui.js`'s `parseCsvField(value)` function, which was originally implemented as `value.split(',')`. For an empty string, JavaScript's `split` returns `['']` rather than `[]`. As a result, completely clearing a resident's allergen field or a dish's ingredient-tag field in the UI produced an array containing one empty string, which `validateState()` in `logic.js` correctly rejected as `INVALID_INPUT` — even though clearing the field was meant to represent "no allergens" or "no tags," a valid state.
+
+### My Evaluation
+
+I reviewed this finding and determined it was a genuine UI integration defect rather than a preference-based change: it caused valid input to be misreported as invalid, and it was located specifically in `ui.js`'s field-parsing logic rather than in any compatibility or validation rule. I decided the fix belonged in the UI parsing layer only, since `validateState()` in `logic.js` was already behaving correctly given the malformed array it was handed — `logic.js` did not need to change.
+
+### Fix Made
+
+Claude applied the fix directly in `ui.js`:
+
+```js
+function parseCsvField(value) {
+  if (value.trim() === '') return [];
+  return value.split(',');
+}
+```
+
+I agreed this was the correct minimal fix: an entirely blank field now maps to an empty list (no allergens/tags), while a genuinely malformed list such as `PEANUT,,MILK` still splits with an empty interior entry and is still correctly rejected by the existing validation logic in `logic.js`. No validation rule was weakened or duplicated to fix this.
+
+### Verification
+
+Claude re-ran the full test suite after the fix:
+
+* Browser verification: 44/44 checks passed, covering built-in results, exact exclusion reasons and their required ordering, search behavior (including case-insensitivity, whitespace handling, and protection of excluded dishes from search), budget changes, invalid price, non-integer price, duplicate dish ID, empty required fields, stale-result clearing, editable state, reset behavior, reason recalculation, result ordering, and UI/state synchronization.
+* Logic regression for Checkpoints 1–3: 34/34 passed, confirming `logic.js` itself was unaffected.
+* Zero browser console errors were observed.
+* Both desktop and 375px mobile viewport verification passed.
+
+I reviewed these results and confirmed the fix resolved the defect without breaking any previously passing behavior.
+
+### UI/Polish Decision
+
+Claude reported that mobile-viewport tables scroll horizontally, but that all columns and controls remained reachable and usable at that width. I agreed this did not constitute a defect and decided against adding any CSS or layout changes purely for cosmetic polish, consistent with the instruction to change only what a genuine issue required.
+
+### Remaining Unverified
+
+The following were identified as not covered by this checkpoint's testing, and I agreed they were acceptable to leave unverified because the specification does not require them:
+
+* keyboard-only navigation and screen-reader labeling;
+* behavior under very large datasets;
+* browsers other than Chromium.
+
+### Decision
+
+I accepted Checkpoint 5 after the bug fix and full regression testing. This checkpoint demonstrated that the AI-generated implementation was tested rather than blindly accepted: a real defect was identified, I evaluated it as genuine, the fix was made at the correct layer (`ui.js`, not `logic.js`) with a minimal change, and the fix was regression-tested before being accepted.
